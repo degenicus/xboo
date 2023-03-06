@@ -9,6 +9,7 @@ import "./abstracts/XbooConstants.t.sol";
 contract productionMigration is XbooConstants {
     address existingVault = 0xFC550BAD3c14160CBA7bc05ee263b3F060149AFF;
     address existingStrat = 0xB62100d94436f53a87516f1aa3Cf42f8A96Ae049;
+    address newStrat = 0x98c3956B492dc4984D1a9752792120ebfCdC9c9B;
 
     ReaperAutoCompoundXBoov2 XbooStrat;
     ReaperAutoCompoundXBoov2 stratIMPL;
@@ -23,16 +24,16 @@ contract productionMigration is XbooConstants {
         vault = ReaperVaultv1_3(existingVault);
         vm.label(existingVault, "vault");
 
-        stratIMPL = new ReaperAutoCompoundXBoov2();
+        /*stratIMPL = new ReaperAutoCompoundXBoov2();
         vm.label(address(stratIMPL), "strategy Implementation");
         stratProxy = new ERC1967Proxy(
             address(stratIMPL),
             "" //args
         );
-        vm.label(address(stratProxy), "ERC1967 Proxy: Strategy Proxy");
+        vm.label(address(stratProxy), "ERC1967 Proxy: Strategy Proxy");*/
 
-        XbooStrat = ReaperAutoCompoundXBoov2(address(stratProxy));
-
+        XbooStrat = ReaperAutoCompoundXBoov2(newStrat);
+/*
         address[] memory feeRemitters = new address[](2);
         feeRemitters[0] = address(0xb0C9D5851deF8A2Aac4A23031CA2610f8C3483F9);
         feeRemitters[1] = address(1);
@@ -46,7 +47,7 @@ contract productionMigration is XbooConstants {
         strategists[0] = address(0xb0C9D5851deF8A2Aac4A23031CA2610f8C3483F9);
 
         XbooStrat.initialize(address(vault), feeRemitters, strategists, msRoles);
-
+*/
         uint256 time = block.timestamp;
         oldPPFS = vault.getPricePerFullShare();
         oldBalance = vault.balance();

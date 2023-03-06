@@ -117,7 +117,7 @@ abstract contract ReaperBaseStrategyv3 is
         totalFee = 450;
         callFee = 1000;
         treasuryFee = 9000;
-        strategistFee = 2500;
+        strategistFee = 0;
         securityFee = 0;
 
         vault = _vault;
@@ -168,6 +168,7 @@ abstract contract ReaperBaseStrategyv3 is
      *      override _harvestCore() and implement their specific logic in it.
      */
     function harvest() external override whenNotPaused returns (uint256 callerFee) {
+        _atLeastRole(KEEPER);
         callerFee = _harvestCore();
 
         if (block.timestamp >= harvestLog[harvestLog.length - 1].timestamp + harvestLogCadence) {

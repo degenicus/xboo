@@ -3,3 +3,7 @@ forge test --fork-url https://rpc.ftm.tools --fork-block-number 48900000 --match
 forge test --match-contract magicatTest --match-test testMagicat --fork-url https://rpc.ftm.tools --fork-block-number 48900000 -vvv
 
 forge test --fork-url https://rpc.ftm.tools --fork-block-number 48900000 --match-contract productionMigration -vvv
+
+forge test --fork-url https://rpc.ftm.tools --match-contract ProductionStrategyUpgrade -vvv
+
+forge test --fork-url https://rpc.ftm.tools --match-contract ProductionMagicatUpgrade -vvv

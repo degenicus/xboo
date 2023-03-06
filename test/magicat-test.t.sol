@@ -13,8 +13,6 @@ contract magicatTest is xBooTest {
     MagicatsHandlerUpgradeable handlerIMPL;
     ERC1967Proxy handlerProxy;
 
-
-
     function setUp() public override {
         xBooTest.setUp();
 
@@ -22,12 +20,8 @@ contract magicatTest is xBooTest {
         address[] memory strategists = new address[](1);
         strategists[0] = address(0xb0C9D5851deF8A2Aac4A23031CA2610f8C3483F9);
 
-        
         handlerIMPL = new MagicatsHandlerUpgradeable();
-        handlerProxy = new ERC1967Proxy(
-            address(handlerIMPL),
-            ""
-        );
+        handlerProxy = new ERC1967Proxy(address(handlerIMPL), "");
         handler = MagicatsHandlerUpgradeable(address(handlerProxy));
         handler.initialize(address(XbooStrat), address(vault), strategists, msRoles);
 
@@ -140,7 +134,8 @@ contract magicatTest is xBooTest {
         console.log(stratIds.length);
         console.log(stratIds[0]);
         uint256[] memory empty = new uint256[](0);
-        handler.updateStakedMagicats(HEC_ID, stratIds, empty);
+        bool allocationCompleted = true;
+        handler.updateStakedMagicats(HEC_ID, stratIds, empty, allocationCompleted);
         vm.stopPrank();
 
         uint256 stratBalanceAfterAllocation = IMagicat(currentMagicats).balanceOf(address(XbooStrat));
@@ -159,7 +154,8 @@ contract magicatTest is xBooTest {
         console.log(stratIds.length);
         console.log(stratIds[0]);
         uint256[] memory empty = new uint256[](0);
-        _handler.updateStakedMagicats(HEC_ID, stratIds, empty);
+        bool allocationCompleted = true;
+        _handler.updateStakedMagicats(HEC_ID, stratIds, empty, allocationCompleted);
         vm.stopPrank();
 
         uint256 stratBalanceAfterAllocation = IMagicat(currentMagicats).balanceOf(address(XbooStrat));

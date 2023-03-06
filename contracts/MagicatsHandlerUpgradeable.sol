@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: AGPLv3
+// SPDX-License-Identifier: BSL1.1
 
 pragma solidity ^0.8.9;
 
@@ -74,6 +74,16 @@ contract MagicatsHandlerUpgradeable is
 
     // address of the strategy the magicatsHandler hooks into
     address public strategy;
+
+    /**
+     * @dev Variables for off-chain bot
+     * {lastAllocationTimestamp} - The block.timestamp of the most recent call to updateStakedMagicats
+     * allowing the bot not to make unecessary re-allocations
+     */
+    uint256 public lastAllocationTimestamp;
+
+    //      catID -> savedPendingRewards 
+    mapping(uint256 => uint256) public savedRewards;
 
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() initializer {}
@@ -187,10 +197,15 @@ contract MagicatsHandlerUpgradeable is
     function updateStakedMagicats(
         uint256 poolID,
         uint256[] memory IDsToStake,
-        uint256[] memory IDsToUnstake
+        uint256[] memory IDsToUnstake,
+        bool allocationCompleted
     ) external {
         _atLeastRole(KEEPER);
         _updateStakedMagicats(poolID, IDsToStake, IDsToUnstake);
+
+        if (allocationCompleted) {
+            lastAllocationTimestamp = block.timestamp;
+        }
     }
 
     /***
@@ -230,7 +245,7 @@ contract MagicatsHandlerUpgradeable is
             unclaimedReward += magicatShare;
         }
 
-        return unclaimedReward;
+        return unclaimedReward + savedRewards[id];
     }
 
     /***
@@ -250,6 +265,7 @@ contract MagicatsHandlerUpgradeable is
      */
     function _claimRewards(uint256 _id) internal {
         uint256 owed = getMagicatReward(_id);
+        delete savedRewards[_id];
         idToMagicat[_id].lastHarvestClaimed = harvests.length;
         IERC20(vault).transfer(msg.sender, owed);
     }
@@ -416,5 +432,23 @@ contract MagicatsHandlerUpgradeable is
         _atLeastRole(ADMIN);
         require(upgradeProposalTime + UPGRADE_TIMELOCK < block.timestamp);
         clearUpgradeCooldown();
+    }
+
+    function partialClaimRewards(uint256 magicatID, uint256 _harvests) public {
+        uint256 totalHarvests = harvests.length;
+        Magicat storage cat = idToMagicat[magicatID];
+        uint256 magicatShare;
+        uint256 unclaimedReward;
+        uint256 lastHarvestClaimed = cat.lastHarvestClaimed;
+        uint256 lastToClaim = lastHarvestClaimed + _harvests;
+        if(lastToClaim > totalHarvests){
+            lastToClaim = totalHarvests;
+        }
+        for(uint256 i = lastHarvestClaimed; i < lastToClaim; i = _uncheckedInc(i)){
+            magicatShare = (harvests[i].amount * cat.manapoints) / harvests[i].totalManaPoints;
+            unclaimedReward += magicatShare;
+        }
+        savedRewards[magicatID] += unclaimedReward;
+        cat.lastHarvestClaimed = lastToClaim;
     }
 }
